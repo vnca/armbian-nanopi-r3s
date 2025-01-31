@@ -1,4 +1,4 @@
-name: Build Armbian Image with AI
+name: Build Jammy Image with AI
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y git curl
+      run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build 
@@ -33,15 +33,14 @@ jobs:
         cd build
         ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=jammy BUILD_MINIMAL=no BUILD_DESKTOP=no KERNEL_CONFIGURE=no
 
-    - name: Save compiled image
+    - name: Compress compiled image
       run: |
         mkdir -p ${{ github.workspace }}/output
-        cp -r output/images/* ${{ github.workspace }}/output/
-      env:
-        GITHUB_TOKEN: ${{ secrets.NANOPI_R3S }}
+        cp -r build/output/images/* ${{ github.workspace }}/output/
+        tar -cJf ${{ github.workspace }}/output/armbian-image-jammy.tar.xz -C ${{ github.workspace }}/output .
 
-    - name: Upload compiled image
+    - name: Upload compressed image
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image
-        path: ${{ github.workspace }}/output/
+        path: ${{ github.workspace }}/output/armbian-image-jammy.tar.xz
