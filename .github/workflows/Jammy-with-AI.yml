@@ -1,12 +1,7 @@
-name: Build Jammy with Copilot
+name: Build Jammy with AI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
