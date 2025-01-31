@@ -1,4 +1,4 @@
-name: Build Armbian Image (Bookworm)
+name: Build Bookworm with Copilot
 
 on:
   push:
@@ -37,7 +37,9 @@ jobs:
       run: |
         mkdir -p ${{ github.workspace }}/output-bookworm
         cp -r build/output/images/* ${{ github.workspace }}/output-bookworm/
-        tar -cJf ${{ github.workspace }}/output-bookworm/armbian-image-bookworm.tar.xz -C ${{ github.workspace }}/output-bookworm .
+        mkdir -p ${{ github.workspace }}/temp-output-bookworm
+        cp -r ${{ github.workspace }}/output-bookworm/* ${{ github.workspace }}/temp-output-bookworm/
+        tar -cJf ${{ github.workspace }}/output-bookworm/armbian-image-bookworm.tar.xz -C ${{ github.workspace }}/temp-output-bookworm .
 
     - name: Upload compressed image
       uses: actions/upload-artifact@v4
