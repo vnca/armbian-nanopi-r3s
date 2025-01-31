@@ -1,0 +1,49 @@
+name: Build Armbian Image with AI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y git curl
+
+    - name: Clone Armbian build repository
+      run: git clone --depth=1 --branch=main https://github.com/armbian/build
+
+    - name: Change to build directory
+      run: cd build
+
+    - name: Compile Armbian image
+      run: |
+        ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=jammy BUILD_MINIMAL=no BUILD_DESKTOP=no KERNEL_CONFIGURE=no
+
+    - name: Save compiled image
+      run: |
+        mkdir -p ${{ github.workspace }}/output
+        cp -r output/images/* ${{ github.workspace }}/output/
+      env:
+        GITHUB_TOKEN: ${{ secrets.NANOPI_R3S }}
+
+    - name: Upload compiled image
+      uses: actions/upload-artifact@v2
+      with:
+        name: armbian-image
+        path: ${{ github.workspace }}/output/
