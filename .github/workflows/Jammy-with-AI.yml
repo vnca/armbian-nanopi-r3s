@@ -1,4 +1,4 @@
-name: Build Jammy Image with Copilot
+name: Build Jammy with Copilot
 
 on:
   push:
@@ -37,7 +37,9 @@ jobs:
       run: |
         mkdir -p ${{ github.workspace }}/output
         cp -r build/output/images/* ${{ github.workspace }}/output/
-        tar -cJf ${{ github.workspace }}/output/armbian-image-jammy.tar.xz -C ${{ github.workspace }}/output .
+        mkdir -p ${{ github.workspace }}/temp-output
+        cp -r ${{ github.workspace }}/output/* ${{ github.workspace }}/temp-output/
+        tar -cJf ${{ github.workspace }}/output/armbian-image-jammy.tar.xz -C ${{ github.workspace }}/temp-output .
 
     - name: Upload compressed image
       uses: actions/upload-artifact@v4
