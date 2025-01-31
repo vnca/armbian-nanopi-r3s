@@ -14,4 +14,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Armbian-unofficial_Nanopi_R3S_jammy_edge.img
-        path: output/ubuntu/*.img
+        path: output/ubuntu/Armbian-unofficial_Nanopi_R3S_jammy_edge.img
