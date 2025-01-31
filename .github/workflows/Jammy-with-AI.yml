@@ -1,4 +1,4 @@
-name: Build Jammy Image with AI
+name: Build Jammy Image with Copilot
 
 on:
   push:
