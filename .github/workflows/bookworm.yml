@@ -1,4 +1,4 @@
-name: "NanoPi R3S Armbian Build Bookworm Current"
+name: "Armbian Build Bookworm Edge"
 on:
   workflow_dispatch:
 jobs:
