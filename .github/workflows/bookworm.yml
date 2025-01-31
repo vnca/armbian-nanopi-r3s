@@ -5,7 +5,7 @@ jobs:
   build-armbian:
     runs-on: ubuntu-latest
     steps:
-      - run: "git clone https://github.com/armbian/build && cd build && ./compile.sh BOARD=nanopi-r3s BRANCH=current RELEASE=bookworm BUILD_MINIMAL=no BUILD_DESKTOP=no KERNEL_CONFIGURE=no"
+      - run: "git clone https://github.com/armbian/build && cd build && ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=bookworm BUILD_MINIMAL=no BUILD_DESKTOP=no KERNEL_CONFIGURE=no"
   release:
     needs: build-armbian
     runs-on: ubuntu-latest
