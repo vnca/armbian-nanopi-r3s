@@ -26,7 +26,7 @@ jobs:
     - name: Compile Armbian image
       run: |
         cd build
-        ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=jammy BUILD_MINIMAL=no BUILD_DESKTOP=no KERNEL_CONFIGURE=no
+        ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=jammy BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
 
     - name: Compress compiled image
       run: |
