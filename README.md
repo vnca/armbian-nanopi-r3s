@@ -1,4 +1,4 @@
-#This repo is to support NanoPi R3S board with Armbian OS. <br><br>
+**This repo is to support NanoPi R3S board with Armbian OS.** <br><br>
 The images were built from original Armbian/Build repo using Github Actions without changes. <br>
 Please refer to: https://github.com/armbian/build if any questions.
 <br>
