@@ -1,4 +1,4 @@
-name: Build Jammy with AI
+name: Build Ubuntu with AI
 
 on:
   workflow_dispatch:
