@@ -3,7 +3,7 @@ The images were built from original Armbian/Build repo using Github Actions with
 Please refer to: https://github.com/armbian/build if any questions.
 <br>
 <br>
-Ubuntu Noble Image: Armbian-unofficial_25.02.0-trunk_Nanopi-r3s_noble_edge_6.13.1_minimal<br>
+Ubuntu Noble Image<br>
 Download link: https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13093966564/artifacts/2522190872<br>
 <br>
 <br>
