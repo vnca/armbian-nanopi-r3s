@@ -7,6 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      OUTPUT_DIR: ${{ github.workspace }}/output
+      TEMP_OUTPUT_DIR: ${{ github.workspace }}/temp-output
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -20,6 +24,12 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache
+        key: ${{ runner.os }}-cache
+
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build 
 
@@ -30,14 +40,16 @@ jobs:
 
     - name: Compress compiled image
       run: |
-        mkdir -p ${{ github.workspace }}/output
-        cp -r build/output/images/* ${{ github.workspace }}/output/
-        mkdir -p ${{ github.workspace }}/temp-output
-        cp -r ${{ github.workspace }}/output/* ${{ github.workspace }}/temp-output/
-        tar -cJf ${{ github.workspace }}/output/armbian-image-jammy.tar.xz -C ${{ github.workspace }}/temp-output .
+        mkdir -p $OUTPUT_DIR
+        cp -r build/output/images/* $OUTPUT_DIR/
+        mkdir -p $TEMP_OUTPUT_DIR
+        cp -r $OUTPUT_DIR/* $TEMP_OUTPUT_DIR/
+        for img in $TEMP_OUTPUT_DIR/*.img; do
+          xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz"
+        done
 
     - name: Upload compressed image
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image
-        path: ${{ github.workspace }}/output/armbian-image-jammy.tar.xz
+        path: $OUTPUT_DIR/*.img.xz
