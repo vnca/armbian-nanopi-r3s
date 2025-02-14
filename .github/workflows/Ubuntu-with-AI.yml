@@ -1,16 +1,12 @@
 name: Build Ubuntu with AI
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     env:
       OUTPUT_DIR: ${{ github.workspace }}/output
       TEMP_OUTPUT_DIR: ${{ github.workspace }}/temp-output
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -24,22 +20,16 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-          ${{ runner.os }}-
-
     - name: Clone Armbian build repository
-      run: git clone --depth=1 --branch=main https://github.com/armbian/build 
+      run: git clone --depth=1 --branch=main https://github.com/armbian/build
 
     - name: Compile Armbian image
       run: |
         cd build
-        ./compile.sh BOARD=nanopi-r3s BRANCH=current RELEASE=noble BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
+        ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=noble BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
+
+    - name: Debug output images
+      run: ls -R build/output/images/
 
     - name: Compress compiled image
       run: |
@@ -51,7 +41,11 @@ jobs:
           xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz"
         done
 
+    - name: Debug compressed images
+      run: ls -R $OUTPUT_DIR
+
     - name: Upload compressed image
+      if: contains(github.workspace, '*.img.xz')
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image
