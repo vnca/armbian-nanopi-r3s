@@ -31,6 +31,7 @@ jobs:
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
+          ${{ runner.os }}-
 
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build 
