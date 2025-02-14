@@ -24,11 +24,13 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
-    - name: Cache dependencies
+    - name: Cache Docker layers
       uses: actions/cache@v3
       with:
-        path: ~/.cache
-        key: ${{ runner.os }}-cache
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
 
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build 
