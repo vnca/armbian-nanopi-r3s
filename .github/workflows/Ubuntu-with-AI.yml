@@ -26,7 +26,7 @@ jobs:
     - name: Compile Armbian image
       run: |
         cd build
-        ./compile.sh BOARD=nanopi-r3s BRANCH=edge RELEASE=noble BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
+        ./compile.sh BOARD=nanopi-r3s BRANCH=current RELEASE=noble BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
 
     - name: Debug output images
       run: ls -R build/output/images/
