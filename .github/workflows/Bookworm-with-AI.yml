@@ -7,6 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      OUTPUT_DIR: ${{ github.workspace }}/output-bookworm
+      TEMP_OUTPUT_DIR: ${{ github.workspace }}/temp-output-bookworm
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -20,6 +24,15 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-
+
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build
 
@@ -30,14 +43,16 @@ jobs:
 
     - name: Compress compiled image
       run: |
-        mkdir -p ${{ github.workspace }}/output-bookworm
-        cp -r build/output/images/* ${{ github.workspace }}/output-bookworm/
-        mkdir -p ${{ github.workspace }}/temp-output-bookworm
-        cp -r ${{ github.workspace }}/output-bookworm/* ${{ github.workspace }}/temp-output-bookworm/
-        tar -cJf ${{ github.workspace }}/output-bookworm/armbian-image-bookworm.tar.xz -C ${{ github.workspace }}/temp-output-bookworm .
+        mkdir -p $OUTPUT_DIR
+        cp -r build/output/images/* $OUTPUT_DIR/
+        mkdir -p $TEMP_OUTPUT_DIR
+        cp -r $OUTPUT_DIR/* $TEMP_OUTPUT_DIR/
+        for img in $TEMP_OUTPUT_DIR/*.img; do
+          xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz"
+        done
 
     - name: Upload compressed image
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image-bookworm
-        path: ${{ github.workspace }}/output-bookworm/armbian-image-bookworm.tar.xz
+        path: $OUTPUT_DIR/*.img.xz
