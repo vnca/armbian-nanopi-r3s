@@ -38,15 +38,51 @@ jobs:
         mkdir -p $TEMP_OUTPUT_DIR
         cp -r $OUTPUT_DIR/* $TEMP_OUTPUT_DIR/
         for img in $TEMP_OUTPUT_DIR/*.img; do
-          xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz"
+          if [ -f "$img" ]; then
+            xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz" || echo "Failed to compress $img"
+          else
+            echo "No .img files found in $TEMP_OUTPUT_DIR"
+          fi
         done
 
     - name: Debug compressed images
       run: ls -R $OUTPUT_DIR
 
+    - name: Check file permissions
+      run: chmod -R +r $OUTPUT_DIR
+
+    - name: Check file sizes against GitHub limits
+      id: check_sizes
+      run: |
+        GITHUB_FILE_LIMIT=500000000  # 500 MB in bytes
+        TOTAL_SIZE=0
+        for file in $OUTPUT_DIR/*.img.xz; do
+          if [ -f "$file" ]; then
+            FILE_SIZE=$(stat --format="%s" "$file")
+            TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+            echo "File: $(basename "$file"), Size: $FILE_SIZE bytes"
+            if [ "$FILE_SIZE" -gt "$GITHUB_FILE_LIMIT" ]; then
+              echo "::warning::File $(basename "$file") exceeds GitHub's 500 MB limit ($FILE_SIZE bytes)"
+            fi
+          fi
+        done
+        echo "Total size of all files: $TOTAL_SIZE bytes"
+        if [ "$TOTAL_SIZE" -gt 2000000000 ]; then
+          echo "::warning::Total artifact size exceeds GitHub's 2 GB limit ($TOTAL_SIZE bytes)"
+        fi
+
+    - name: Check for .img.xz files
+      id: check_files
+      run: |
+        if find $OUTPUT_DIR -name "*.img.xz" | grep -q .; then
+          echo "files_exist=true" >> $GITHUB_ENV
+        else
+          echo "files_exist=false" >> $GITHUB_ENV
+        fi
+
     - name: Upload compressed image
-      if: contains(github.workspace, '*.img.xz')
+      if: env.files_exist == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image
-        path: $OUTPUT_DIR/*.img.xz
+        path: $OUTPUT_DIR/**/*.img.xz
