@@ -48,7 +48,7 @@ jobs:
     - name: Debug compressed images
       run: ls -R $OUTPUT_DIR
 
-    - name: Check file permissions
+    - name: Fix file permissions
       run: chmod -R +r $OUTPUT_DIR
 
     - name: Check file sizes against GitHub limits
@@ -85,4 +85,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image
-        path: $OUTPUT_DIR/**/*.img.xz
+        path: $OUTPUT_DIR/*.img.xz
