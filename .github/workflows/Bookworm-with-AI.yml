@@ -1,16 +1,12 @@
-name: Build Bookworm with AI
-
+name: Build Debian with AI (Bookworm)
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     env:
-      OUTPUT_DIR: ${{ github.workspace }}/output-bookworm
-      TEMP_OUTPUT_DIR: ${{ github.workspace }}/temp-output-bookworm
-
+      OUTPUT_DIR: ${{ github.workspace }}/output
+      TEMP_OUTPUT_DIR: ${{ github.workspace }}/temp-output
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -24,15 +20,6 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
 
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-          ${{ runner.os }}-
-
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build
 
@@ -41,6 +28,9 @@ jobs:
         cd build
         ./compile.sh BOARD=nanopi-r3s BRANCH=current RELEASE=bookworm BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no
 
+    - name: Debug output images
+      run: ls -R build/output/images/
+
     - name: Compress compiled image
       run: |
         mkdir -p $OUTPUT_DIR
@@ -48,10 +38,50 @@ jobs:
         mkdir -p $TEMP_OUTPUT_DIR
         cp -r $OUTPUT_DIR/* $TEMP_OUTPUT_DIR/
         for img in $TEMP_OUTPUT_DIR/*.img; do
-          xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz"
+          if [ -f "$img" ]; then
+            xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz" || echo "Failed to compress $img"
+          else
+            echo "No .img files found in $TEMP_OUTPUT_DIR"
+          fi
         done
 
+    - name: Debug compressed images
+      run: ls -R $OUTPUT_DIR
+
+    - name: Fix file permissions
+      run: chmod -R +r $OUTPUT_DIR
+
+    - name: Check file sizes against GitHub limits
+      id: check_sizes
+      run: |
+        GITHUB_FILE_LIMIT=500000000  # 500 MB in bytes
+        TOTAL_SIZE=0
+        for file in $OUTPUT_DIR/*.img.xz; do
+          if [ -f "$file" ]; then
+            FILE_SIZE=$(stat --format="%s" "$file")
+            TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
+            echo "File: $(basename "$file"), Size: $FILE_SIZE bytes"
+            if [ "$FILE_SIZE" -gt "$GITHUB_FILE_LIMIT" ]; then
+              echo "::warning::File $(basename "$file") exceeds GitHub's 500 MB limit ($FILE_SIZE bytes)"
+            fi
+          fi
+        done
+        echo "Total size of all files: $TOTAL_SIZE bytes"
+        if [ "$TOTAL_SIZE" -gt 2000000000 ]; then
+          echo "::warning::Total artifact size exceeds GitHub's 2 GB limit ($TOTAL_SIZE bytes)"
+        fi
+
+    - name: Check for .img.xz files
+      id: check_files
+      run: |
+        if find $OUTPUT_DIR -name "*.img.xz" | grep -q .; then
+          echo "files_exist=true" >> $GITHUB_ENV
+        else
+          echo "files_exist=false" >> $GITHUB_ENV
+        fi
+
     - name: Upload compressed image
+      if: env.files_exist == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image-bookworm
