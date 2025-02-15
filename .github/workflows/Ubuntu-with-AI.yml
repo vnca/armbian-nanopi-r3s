@@ -1,4 +1,4 @@
-name: Build Ubuntu with AI
+name: Build Ubuntu Noble Image
 on:
   workflow_dispatch:
 jobs:
@@ -71,18 +71,21 @@ jobs:
           echo "::warning::Total artifact size exceeds GitHub's 2 GB limit ($TOTAL_SIZE bytes)"
         fi
 
-    - name: Check for .img.xz files
-      id: check_files
+    - name: Locate .img.xz file
+      id: locate_file
       run: |
-        if find $OUTPUT_DIR -name "*.img.xz" | grep -q .; then
-          echo "files_exist=true" >> $GITHUB_ENV
+        IMG_XZ_FILE=$(find $OUTPUT_DIR -name "*.img.xz" | head -n 1)
+        if [ -n "$IMG_XZ_FILE" ]; then
+          echo "Found .img.xz file: $IMG_XZ_FILE"
+          echo "img_xz_file=$IMG_XZ_FILE" >> $GITHUB_ENV
         else
-          echo "files_exist=false" >> $GITHUB_ENV
+          echo "::error::No .img.xz files found in $OUTPUT_DIR"
+          exit 1
         fi
 
     - name: Upload compressed image
-      if: env.files_exist == 'true'
+      if: env.img_xz_file != ''
       uses: actions/upload-artifact@v4
       with:
-        name: armbian-image
-        path: $OUTPUT_DIR/*.img.xz
+        name: armbian-image-ubuntu-noble
+        path: ${{ env.img_xz_file }}
