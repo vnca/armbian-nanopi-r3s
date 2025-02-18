@@ -18,7 +18,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y git curl xz-utils
+      run: sudo apt-get update && sudo apt-get install -y git curl gzip
 
     - name: Clone Armbian build repository
       run: git clone --depth=1 --branch=main https://github.com/armbian/build
@@ -39,7 +39,7 @@ jobs:
         cp -r $OUTPUT_DIR/* $TEMP_OUTPUT_DIR/
         for img in $TEMP_OUTPUT_DIR/*.img; do
           if [ -f "$img" ]; then
-            xz -z -c "$img" > "$OUTPUT_DIR/$(basename "$img").xz" || echo "Failed to compress $img"
+            gzip -c "$img" > "$OUTPUT_DIR/$(basename "$img").gz" || echo "Failed to compress $img"
           else
             echo "No .img files found in $TEMP_OUTPUT_DIR"
           fi
@@ -56,7 +56,7 @@ jobs:
       run: |
         GITHUB_FILE_LIMIT=500000000  # 500 MB in bytes
         TOTAL_SIZE=0
-        for file in $OUTPUT_DIR/*.img.xz; do
+        for file in $OUTPUT_DIR/*.img.gz; do
           if [ -f "$file" ]; then
             FILE_SIZE=$(stat --format="%s" "$file")
             TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
@@ -71,21 +71,21 @@ jobs:
           echo "::warning::Total artifact size exceeds GitHub's 2 GB limit ($TOTAL_SIZE bytes)"
         fi
 
-    - name: Locate .img.xz file
+    - name: Locate .img.gz file
       id: locate_file
       run: |
-        IMG_XZ_FILE=$(find $OUTPUT_DIR -name "*.img.xz" | head -n 1)
-        if [ -n "$IMG_XZ_FILE" ]; then
-          echo "Found .img.xz file: $IMG_XZ_FILE"
-          echo "img_xz_file=$IMG_XZ_FILE" >> $GITHUB_ENV
+        IMG_GZ_FILE=$(find $OUTPUT_DIR -name "*.img.gz" | head -n 1)
+        if [ -n "$IMG_GZ_FILE" ]; then
+          echo "Found .img.gz file: $IMG_GZ_FILE"
+          echo "img_gz_file=$IMG_GZ_FILE" >> $GITHUB_ENV
         else
-          echo "::error::No .img.xz files found in $OUTPUT_DIR"
+          echo "::error::No .img.gz files found in $OUTPUT_DIR"
           exit 1
         fi
 
     - name: Upload compressed image
-      if: env.img_xz_file != ''
+      if: env.img_gz_file != ''
       uses: actions/upload-artifact@v4
       with:
         name: armbian-image-ubuntu-noble
-        path: ${{ env.img_xz_file }}
+        path: ${{ env.img_gz_file }}
