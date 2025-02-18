@@ -4,7 +4,7 @@ Please refer to: https://github.com/armbian/build if any questions.
 <br>
 <br>
 Armbian (Ubuntu Noble) Image for Nanopi R3S<br>
-Download link: https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13093966564/artifacts/2522190872<br>
+Download link: [https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13093966564/artifacts/2522190872](https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13349236545/artifacts/2597861733)<br>
 <br>
 <br>
 Armbian (Debian Bookworm) Image for Nanopi R3S<br>
