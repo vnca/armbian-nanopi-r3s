@@ -8,5 +8,5 @@ Download link: https://github.com/vnca/armbian-nanopi-r3s/actions/runs/133492365
 <br>
 <br>
 Armbian (Debian Bookworm) Image for Nanopi R3S<br>
-Download link: https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13090649964/artifacts/2521557187<br>
+Download link: https://github.com/vnca/armbian-nanopi-r3s/actions/runs/13349247144/artifacts/2597866491<br>
 <br>
